@@ -1,4 +1,5 @@
 # https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
+# https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#cryptography.hazmat.primitives.kdf.scrypt.Scrypt
 
 from my_class import PyCaClass
 
