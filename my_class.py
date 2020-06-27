@@ -1,15 +1,17 @@
 # Cryptography
 import base64
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet, InvalidToken
-
 from cryptography.exceptions import InvalidKey, InvalidSignature
 
+# Others
+import traceback
+import os.path
 
 # My
 import utility
 
-import traceback
 
 class PyCaClass:
     
@@ -38,7 +40,6 @@ class PyCaClass:
             return(True)
         except:
             return(False)
-
 
     """""""""""""""""""""""""""""""""""""""""""""""""""
     Create KDF the given PASSWORD and SALT
@@ -211,4 +212,33 @@ class PyCaClass:
         else:
             self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.decrypt',_inputs,_fernet_obj[1])}")
 
+        return(self.response_tuple)
+
+    """""""""""""""""""""""""""""""""""""""
+    CHECKSUM file ( BLAKE2b(64) )
+    """""""""""""""""""""""""""""""""""""""
+    def checksum_file(self, _file_name, _file_path):
+        
+        # Prepare
+        _file = f"{_file_path}{_file_name}"
+        _inputs = f"{self.inputs}|{_file}"
+        
+        if os.path.exists(_file):
+        
+            with open(_file, "rb") as f:
+                try:
+                    _file_hash = hashes.Hash(   hashes.BLAKE2b(64), 
+                                                backend=self.backend )
+        
+                    while chunk := f.read(8192): # Read the binary file to the end (8192)
+                        _file_hash.update(chunk)
+                except Exception:
+                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.checksum_file',_inputs,traceback.format_exc(2))}")
+
+            self.output_value   = base64.urlsafe_b64encode( _file_hash.finalize() )
+            self.response_tuple = ('OK',self.output_value)
+            
+        else:
+            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.checksum_file',_inputs,'File does not exist')}")
+            
         return(self.response_tuple)

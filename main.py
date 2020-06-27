@@ -118,9 +118,49 @@ def main(choose):
         
         print('---------------------------------------------------------')
 
+    # CheckSum File
+    elif choose == 3:
+        
+        _file1  = 'Example1.pdf'
+        _file2  = 'Example1_copy.pdf'
+        _file3  = 'Example1_modified.pdf'        
+        
+        _fernet_obj = PyCaClass( salt )
+        
+        # Calculate checksum1
+        _checksum1  = _fernet_obj.checksum_file(_file1, './')
+        if _checksum1[0] == 'NOK':
+            print(_checksum1[1])
+            exit(1)
+        
+        # Calculate checksum2
+        _checksum2 = _fernet_obj.checksum_file(_file2, './')
+        if _checksum2[0] == 'NOK':
+            print(_checksum2[1])
+            exit(1)
+            
+        # Verify checksum
+        if _checksum1[1] == _checksum2[1]:
+        
+            print('---------------------------------------------------------')
+            print( f"The files are the same" )        
+            print( f"Checksum1: {_checksum1[1]}" )
+            print( f"Checksum2: {_checksum2[1]}" )
+            print('---------------------------------------------------------')
+            print('\n')
+        
+        else:
+            
+            print('---------------------------------------------------------')
+            print( f"The files are not the same" )        
+            print( f"Checksum1: {_checksum1[1]}" )
+            print( f"Checksum2: {_checksum2[1]}" )
+            print('---------------------------------------------------------')
+            print('\n')                    
+
 
 if __name__ == "__main__":
 
-    choose = input(f"{chr(10)}CHOOSE WHAT TO DO (Verify Password 1, Crypt&Decrypt with password 2): ") 
+    choose = input(f"{chr(10)}CHOOSE WHAT TO DO (Verify Password 1, Crypt&Decrypt with password 2, CheckSum File 3): ") 
     
     main(int(choose))
