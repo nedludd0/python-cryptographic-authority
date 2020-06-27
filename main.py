@@ -1,6 +1,6 @@
 # https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
 
-from crypt_my_functions import FernetCryptographyClass
+from my_class import FernetCryptographyClass
 
 def main():
     """""""""""""""""""""""""""""""""""""""""""""
@@ -12,9 +12,8 @@ def main():
     """""""""
     tg_id           = 15511234
     tg_password     = 'p#sswoR1'
-    salt            = '{}'.format(tg_id)
+    salt            = f"{tg_id}"
     binance_api_key = '55555555555555555555555555555ddddddddddddDDDD5555555555555555555'
-    binance_sec_key = '333333333ddddFFFFFFFFFFFFff000000000222222222222222222222222222'
     
     
     """""""""""""""""""""""""""
@@ -24,51 +23,45 @@ def main():
     ### CRYPT WITH FERNET
     
     _input1 = binance_api_key
-    _input2 = binance_sec_key
     
-    _fernet_obj = FernetCryptographyClass(	tg_password, 
+    _fernet_obj = FernetCryptographyClass(  tg_password, 
                                             salt, 
-                                            _input1, 
-                                            _input2
-                                        )
+                                            _input1)
+                                            
     _binance_key_encrypt = _fernet_obj.crypt()
     
-    if _binance_key_encrypt.get('response') == 'OK':
+    if _binance_key_encrypt[0] == 'OK':
         
         print('---------------------------------------------------------')
-        print( 'Encrypt response: {}'.format(_binance_key_encrypt.get('response')) )
-        print( _binance_key_encrypt.get('input1_encrypted') )
-        print( _binance_key_encrypt.get('input2_encrypted') )
+        print( f"Encrypt response: {_binance_key_encrypt[0]}" )
+        print( _binance_key_encrypt[1] )
         print('---------------------------------------------------------')
         print('\n')
 
     else:
-        print('Errore di crypt')
+        print(_binance_key_encrypt[1])
         exit(1)
     
     ### DECRYPT WITH FERNET
     
-    _input1 = _binance_key_encrypt.get('input1_encrypted')
-    _input2 = _binance_key_encrypt.get('input2_encrypted')
+    _input1 = _binance_key_encrypt[1]
     
-    _fernet_obj = FernetCryptographyClass(	tg_password, 
+    _fernet_obj = FernetCryptographyClass(  tg_password, 
                                             salt, 
-                                            _input1, 
-                                            _input2
-                        )
+                                            _input1 )
+                                            
     _binance_key_decrypt = _fernet_obj.decrypt()
     
-    if _binance_key_decrypt.get('response') == 'OK':
+    if _binance_key_decrypt[0] == 'OK':
         
         print('---------------------------------------------------------')
-        print( 'Decrypt response: {}'.format(_binance_key_decrypt.get('response')) )
-        print( _binance_key_decrypt.get('input1_decrypted') )
-        print( _binance_key_decrypt.get('input2_decrypted') )
+        print( f"DeCrypt response: {_binance_key_decrypt[0]}" )        
+        print( _binance_key_decrypt[1] )
         print('---------------------------------------------------------')
         print('\n')
         
     else:
-        print('Errore di decrypt')
+        print(_binance_key_decrypt[1])
         exit(1)
     
     """""""""""""""""""""""""""
@@ -78,10 +71,10 @@ def main():
     print('---------------------------------------------------------')
     
     print('Verify Crypt & DeCrypt')
-    if binance_api_key == _binance_key_decrypt.get('input1_decrypted') :
-        print('binance_api_key OK')
-    if binance_sec_key == _binance_key_decrypt.get('input2_decrypted'):
-        print('binance_sec_key OK')
+    if binance_api_key == _binance_key_decrypt[1] :
+        print('OK')
+    else:
+        print('NOK')
     
     print('---------------------------------------------------------')
 
