@@ -1,2 +1,2 @@
 # python-cryptographic-authority
-use of the libraries https://github.com/pyca 
+A class to use libraries https://github.com/pyca 
