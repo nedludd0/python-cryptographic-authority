@@ -10,7 +10,7 @@ def main():
     """""""""
     Input
     """""""""
-    tg_id           = 15519490
+    tg_id           = 15511234
     tg_password     = 'p#sswoR1'
     salt            = '{}'.format(tg_id)
     binance_api_key = '55555555555555555555555555555ddddddddddddDDDD5555555555555555555'
