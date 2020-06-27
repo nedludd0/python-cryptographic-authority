@@ -227,9 +227,7 @@ class PyCaClass:
         
             with open(_file, "rb") as f:
                 try:
-                    _file_hash = hashes.Hash(   hashes.BLAKE2b(64), 
-                                                backend=self.backend )
-        
+                    _file_hash = hashes.Hash( hashes.BLAKE2b(64), backend=self.backend )
                     while chunk := f.read(8192): # Read the binary file to the end (8192)
                         _file_hash.update(chunk)
                 except Exception:

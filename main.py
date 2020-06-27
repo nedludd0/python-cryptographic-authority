@@ -142,24 +142,20 @@ def main(choose):
             
         # Verify checksum
         if _checksum1[1] == _checksum2[1]:
-        
             print('---------------------------------------------------------')
             print( f"The files are the same" )        
             print( f"Checksum1: {_checksum1[1]}" )
             print( f"Checksum2: {_checksum2[1]}" )
             print('---------------------------------------------------------')
             print('\n')
-        
         else:
-            
             print('---------------------------------------------------------')
             print( f"The files are not the same" )        
             print( f"Checksum1: {_checksum1[1]}" )
             print( f"Checksum2: {_checksum2[1]}" )
             print('---------------------------------------------------------')
-            print('\n')                    
-
-
+            print('\n')
+            
 if __name__ == "__main__":
 
     choose = input(f"{chr(10)}CHOOSE WHAT TO DO (Verify Password 1, Crypt&Decrypt with password 2, CheckSum File 3): ") 
