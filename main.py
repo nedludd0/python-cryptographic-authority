@@ -25,10 +25,9 @@ def main():
     _input1 = binance_api_key
     
     _fernet_obj = FernetCryptographyClass(  tg_password, 
-                                            salt, 
-                                            _input1)
+                                            salt )
                                             
-    _binance_key_encrypt = _fernet_obj.crypt()
+    _binance_key_encrypt = _fernet_obj.crypt(_input1)
     
     if _binance_key_encrypt[0] == 'OK':
         
@@ -47,10 +46,9 @@ def main():
     _input1 = _binance_key_encrypt[1]
     
     _fernet_obj = FernetCryptographyClass(  tg_password, 
-                                            salt, 
-                                            _input1 )
+                                            salt )
                                             
-    _binance_key_decrypt = _fernet_obj.decrypt()
+    _binance_key_decrypt = _fernet_obj.decrypt(_input1)
     
     if _binance_key_decrypt[0] == 'OK':
         

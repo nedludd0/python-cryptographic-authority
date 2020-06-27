@@ -10,7 +10,7 @@ import traceback
 
 class FernetCryptographyClass:
     
-    def __init__(self, _password, _salt, _value):
+    def __init__(self, _password, _salt):
         
         # Defaults
         self.algo       = 'Scrypt'
@@ -20,12 +20,11 @@ class FernetCryptographyClass:
         # Inputs
         self.password_encoded   = _password.encode(self.encoding)
         self.salt_encoded       = _salt.encode(self.encoding)
-        self.value              = _value
         
         # Prepare
         self.response_tuple = None
-        self.inputs         = f"{_salt}|{_value}"
         self.output_value   = None
+        self.inputs         = f"{_salt}"
 
     """""""""""""""""""""""""""""""""""""""""""""
     Verify if _string is encoded
@@ -83,9 +82,12 @@ class FernetCryptographyClass:
         return(self.response_tuple)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    CRYPT (symmetric encryption with fernet token created from given PASSWORD and SALT)
+    CRYPT (symmetric encryption of _input_value1 with fernet token created from given PASSWORD and SALT)
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    def crypt(self):
+    def crypt(self, _input_value1):
+        
+        # Prepare
+        _inputs = f"{self.inputs}|{_input_value1}"
         
         # Create Obj
         _fernet_obj  = self.create_fernet_obj()
@@ -93,28 +95,31 @@ class FernetCryptographyClass:
         # Crypt with Fernet Obj
         if _fernet_obj[0] == 'OK':
 
-            if not ( self.is_encoded(self.value)  ):
+            if not ( self.is_encoded(_input_value1)  ):
                 try:
-                    self.output_value   = _fernet_obj[1].encrypt( self.value.encode(self.encoding) )
+                    self.output_value   = _fernet_obj[1].encrypt( _input_value1.encode(self.encoding) )
                     self.response_tuple = ('OK',self.output_value)
                 except:
-                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.crypt',self.inputs,traceback.format_exc(2))}")
+                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.crypt',_inputs,traceback.format_exc(2))}")
             else:
                 try:
-                    self.output_value   = _fernet_obj[1].encrypt( self.value )
+                    self.output_value   = _fernet_obj[1].encrypt( _input_value1 )
                     self.response_tuple = ('OK',self.output_value)
                 except:
-                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.crypt',self.inputs,traceback.format_exc(2))}")
+                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.crypt',_inputs,traceback.format_exc(2))}")
         
         else:
-            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.crypt',self.inputs,_fernet_obj[1])}")
+            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.crypt',_inputs,_fernet_obj[1])}")
         
         return(self.response_tuple)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    DECRYPT (symmetric encryption with fernet token created from given PASSWORD and SALT)
+    DECRYPT (symmetric encryption of _input_value1 with fernet token created from given PASSWORD and SALT)
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    def decrypt(self):
+    def decrypt(self, _input_value1):
+
+        # Prepare
+        _inputs = f"{self.inputs}|{_input_value1}"
         
         # Create Obj
         _fernet_obj  = self.create_fernet_obj()
@@ -122,16 +127,16 @@ class FernetCryptographyClass:
         # Decrypt with Fernet Obj
         if _fernet_obj[0] == 'OK':
             
-            if ( self.is_encoded(self.value) ):
+            if ( self.is_encoded(_input_value1) ):
                 try:
-                    self.output_value   = str(_fernet_obj[1].decrypt( self.value ), self.encoding )
+                    self.output_value   = str(_fernet_obj[1].decrypt( _input_value1 ), self.encoding )
                     self.response_tuple = ('OK',self.output_value)
                 except:
-                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.decrypt',self.inputs,traceback.format_exc(2))}")
+                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','FernetCryptographyClass.decrypt',_inputs,traceback.format_exc(2))}")
             else:
-                self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.decrypt',self.inputs,'Input value not encoded')}")
+                self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.decrypt',_inputs,'Input value not encoded')}")
 
         else:
-            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.decrypt',self.inputs,_fernet_obj[1])}")
+            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','FernetCryptographyClass.decrypt',_inputs,_fernet_obj[1])}")
 
         return(self.response_tuple)
