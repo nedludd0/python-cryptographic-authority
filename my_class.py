@@ -217,7 +217,7 @@ class PyCaClass:
     """""""""""""""""""""""""""""""""""""""
     CHECKSUM file ( BLAKE2b(64) )
     """""""""""""""""""""""""""""""""""""""
-    def checksum_file(self, _file_name, _file_path):
+    def checksum_file(self, _file_path, _file_name):
         
         # Prepare
         _file = f"{_file_path}{_file_name}"

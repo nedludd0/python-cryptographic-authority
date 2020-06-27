@@ -121,20 +121,21 @@ def main(choose):
     # CheckSum File
     elif choose == 3:
         
-        _file1  = 'Example1.pdf'
-        _file2  = 'Example1_copy.pdf'
-        _file3  = 'Example1_modified.pdf'        
+        _file_path  = './'
+        _file1_name = 'Example1.pdf'
+        _file2_name = 'Example1_copy.pdf'
+        _file3_name = 'Example1_modified.pdf'        
         
         _fernet_obj = PyCaClass( salt )
         
         # Calculate checksum1
-        _checksum1  = _fernet_obj.checksum_file(_file1, './')
+        _checksum1  = _fernet_obj.checksum_file(_file_path, _file1_name)
         if _checksum1[0] == 'NOK':
             print(_checksum1[1])
             exit(1)
         
         # Calculate checksum2
-        _checksum2 = _fernet_obj.checksum_file(_file2, './')
+        _checksum2 = _fernet_obj.checksum_file(_file_path, _file2_name)
         if _checksum2[0] == 'NOK':
             print(_checksum2[1])
             exit(1)
