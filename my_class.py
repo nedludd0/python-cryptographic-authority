@@ -12,7 +12,7 @@ import traceback
 
 class PyCaClass:
     
-    def __init__(self, _password2hash, _salt):
+    def __init__(self, _salt, _password2hash):
         
         # Defaults
         self.algo           = 'Scrypt'
@@ -105,20 +105,12 @@ class PyCaClass:
     """""""""""""""""""""""""""""""""""""""""""""""""""
     VERIFY the password with its derived key (your hash)
     """""""""""""""""""""""""""""""""""""""""""""""""""
-    def verify_password(self, _password2verify):
+    def verify_password(self, _password_stored, _password2verify):
     
         # Prepare
-        _inputs                     = f"{self.inputs}|{_password2verify}"
+        _inputs                     = f"{self.inputs}|{_password_stored}|{_password2verify}"
         _password2verify_encoded    = _password2verify.encode(self.encoding)
-        _f_key_b64decode            = None
-        
-        # Hash & b64decode
-        _f_key  = self.derive_and_b64encode_key()
-        if _f_key[0] == 'OK':
-            _f_key_b64decode = base64.urlsafe_b64decode(_f_key[1])
-        else:
-            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.verify_password',_inputs,_f_key[1])}")
-            return(self.response_tuple)
+        _password_stored_b64decode  = base64.urlsafe_b64decode(_password_stored) # b64decode
          
         # Create KDF
         _kdf = self.create_kdf()
@@ -126,7 +118,7 @@ class PyCaClass:
         # Instance Fernet Obj
         if _kdf[0] == 'OK':
             try:
-                _kdf[1].verify(_password2verify_encoded, _f_key_b64decode)
+                _kdf[1].verify(_password2verify_encoded, _password_stored_b64decode)
                 self.response_tuple = ('OK', True)
             except InvalidKey as e:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.verify_password',_inputs,e)}")
