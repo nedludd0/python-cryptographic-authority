@@ -1,8 +1,9 @@
 # Cryptography
 import base64
 from cryptography.hazmat.backends import default_backend
-from cryptography.fernet import Fernet
-from cryptography.exceptions import InvalidKey
+from cryptography.fernet import Fernet, InvalidToken
+
+from cryptography.exceptions import InvalidKey, InvalidSignature
 
 
 # My
@@ -12,7 +13,7 @@ import traceback
 
 class PyCaClass:
     
-    def __init__(self, _salt, _password2hash):
+    def __init__(self, _salt):
         
         # Defaults
         self.algo           = 'Scrypt'
@@ -20,8 +21,7 @@ class PyCaClass:
         self.backend        = default_backend()
         
         # Inputs
-        self.password2hash_encoded  = _password2hash.encode(self.encoding)
-        self.salt_encoded           = _salt.encode(self.encoding) + _salt.encode(self.encoding) # I double the salt to make the encryption more robust
+        self.salt_encoded   = _salt.encode(self.encoding) + _salt.encode(self.encoding) # I double the salt to make the encryption more robust
 
         # Prepare
         self.response_tuple = None
@@ -84,7 +84,10 @@ class PyCaClass:
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     Derived Key from the given PASSWORD and SALT - like HASHING password
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    def derive_and_b64encode_key(self):
+    def derive_and_b64encode_key(self, _password2hash):
+        
+        # Prepare
+        _password2hash_encoded  = _password2hash.encode(self.encoding)
         
         # Create KDF
         _kdf = self.create_kdf()
@@ -92,7 +95,7 @@ class PyCaClass:
         # Derive (Hashing)
         if _kdf[0] == 'OK':
             try:
-                _f_derive   = _kdf[1].derive( self.password2hash_encoded )
+                _f_derive   = _kdf[1].derive( _password2hash_encoded )
                 _f_key      = base64.urlsafe_b64encode(_f_derive)
                 self.response_tuple = ('OK',_f_key)
             except:
@@ -132,15 +135,15 @@ class PyCaClass:
     """""""""""""""""""""""""""""""""""""""""""""""""""
     Create Fernet Obj from derived key
     """""""""""""""""""""""""""""""""""""""""""""""""""
-    def create_fernet_obj(self):
+    def create_fernet_obj(self, _password2hash):
         
-        _f_key = self.derive_and_b64encode_key()
+        _f_key = self.derive_and_b64encode_key(_password2hash)
        
         # Instance Fernet Obj
         if _f_key[0] == 'OK':
             try:
                 _fernet_obj = Fernet( _f_key[1] )
-                self.response_tuple = ('OK',_fernet_obj)
+                self.response_tuple = ('OK',_fernet_obj)              
             except:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',self.inputs,traceback.format_exc(2))}")
         else:
@@ -148,17 +151,16 @@ class PyCaClass:
             
         return(self.response_tuple)
 
-
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     CRYPT symmetric encryption of _input_value1 (with fernet obj)
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    def crypt(self, _input_value1):
+    def crypt(self, _password4crypt, _input_value1):
         
         # Prepare
         _inputs = f"{self.inputs}|{_input_value1}"
         
         # Create Obj
-        _fernet_obj  = self.create_fernet_obj()
+        _fernet_obj  = self.create_fernet_obj(_password4crypt)
         
         # Crypt with Fernet Obj
         if _fernet_obj[0] == 'OK':
@@ -184,22 +186,24 @@ class PyCaClass:
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     DECRYPT symmetric encryption of _input_value1 (with fernet obj)
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    def decrypt(self, _input_value1):
+    def decrypt(self, _password4decrypt, _input_value1):
 
         # Prepare
         _inputs = f"{self.inputs}|{_input_value1}"
         
         # Create Obj
-        _fernet_obj  = self.create_fernet_obj()
+        _fernet_obj  = self.create_fernet_obj(_password4decrypt)
 
         # Decrypt with Fernet Obj
         if _fernet_obj[0] == 'OK':
             
-            if ( self.is_encoded(_input_value1) ):
+            if self.is_encoded(_input_value1):
                 try:
-                    self.output_value   = str(_fernet_obj[1].decrypt( _input_value1 ), self.encoding )
+                    self.output_value   = str( _fernet_obj[1].decrypt( _input_value1 ), self.encoding )
                     self.response_tuple = ('OK',self.output_value)
-                except:
+                except InvalidToken:
+                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',_inputs,'InvalidToken')}")                                                             
+                except Exception:
                     self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.decrypt',_inputs,traceback.format_exc(2))}")
             else:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.decrypt',_inputs,'Input value not encoded')}")

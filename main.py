@@ -30,18 +30,18 @@ def main(choose):
         print(f"{chr(10)}")
         
         
-        _fernet_obj         = PyCaClass( salt, password2store )
+        _fernet_obj         = PyCaClass( salt )
         
-        _password_stored    =  _fernet_obj.derive_and_b64encode_key() 
+        _password_hashed    =  _fernet_obj.derive_and_b64encode_key( password2store ) 
         
-        if _password_stored[0] == 'OK':
+        if _password_hashed[0] == 'OK':
         
-            _check  = _fernet_obj.verify_password( _password_stored[1], password2check )
+            _check  = _fernet_obj.verify_password( _password_hashed[1], password2check )
         
             if _check[0] == 'OK':
                 
                 print('---------------------------------------------------------')
-                print(f"Password Stored: {_password_stored}")
+                print(f"Password Stored: {_password_hashed[1]}")
                 print( f"Check Password: {_check[1]}" )
                 print('---------------------------------------------------------')
                 print('\n')
@@ -51,7 +51,7 @@ def main(choose):
                 exit(1)
 
         else:
-            print(_password_stored[1])
+            print(_password_hashed[1])
             exit(1)
 
     # Crypt&Decrypt with password
@@ -65,15 +65,16 @@ def main(choose):
         print(f"{chr(10)}------------")        
         print(f"-- INPUTs --")
         print(f"------------")        
-        password4crypt_decrypt = input("Choose Password to Use: ")       
+        password4crypt      = input("Choose Password to Crypt: ")
+        password4decrypt    = input("Choose Password to DeCrypt: ")              
         print(f"{chr(10)}")
 
         
         ### CRYPT WITH FERNET
         
-        _fernet_obj     = PyCaClass( salt, password4crypt_decrypt )
+        _fernet_obj     = PyCaClass( salt )
                                                 
-        _key_encrypt    = _fernet_obj.crypt(key)
+        _key_encrypt    = _fernet_obj.crypt( password4crypt , key )
         
         if _key_encrypt[0] == 'OK':
             
@@ -89,9 +90,9 @@ def main(choose):
         
         ### DECRYPT WITH FERNET
         
-        _fernet_obj     = PyCaClass( salt, password4crypt_decrypt )
+        _fernet_obj     = PyCaClass( salt )
                                                 
-        _key_decrypt    = _fernet_obj.decrypt(_key_encrypt[1])
+        _key_decrypt    = _fernet_obj.decrypt( password4decrypt , _key_encrypt[1])
         
         if _key_decrypt[0] == 'OK':
             
