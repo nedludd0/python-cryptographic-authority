@@ -1,6 +1,6 @@
 # https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
 
-from my_class import FernetCryptographyClass
+from my_class import PyCaClass
 
 def main():
     """""""""""""""""""""""""""""""""""""""""""""
@@ -10,11 +10,37 @@ def main():
     """""""""
     Input
     """""""""
-    tg_id           = 15511234
-    tg_password     = 'p#sswoR1'
-    salt            = f"{tg_id}"
-    binance_api_key = '55555555555555555555555555555ddddddddddddDDDD5555555555555555555'
+    salt    = f"15511234"
+    key     = '55555555555555555555555555555ddddddddddddDDDD5555555555555555555'
+
+    # Inputs
+    print(f"{chr(10)}------------")        
+    print(f"-- INPUTs --")
+    print(f"------------")        
+    password2store = input("Choose Password to Store: ") 
+    password2check = input("Choose Password to Check: ")       
+    print(f"{chr(10)}")
+
     
+    """""""""""""""""""""""""""
+    Hash & Verify Password
+    """""""""""""""""""""""""""
+    
+    _fernet_obj = PyCaClass( password2store, salt )
+    
+    _check      = _fernet_obj.verify_password( password2check )
+    
+    if _check[0] == 'OK':
+        
+        print('---------------------------------------------------------')
+        print( f"Verify Password" )
+        print( _check[1] )
+        print('---------------------------------------------------------')
+        print('\n')
+
+    else:
+        print(_check[1])
+        exit(1)
     
     """""""""""""""""""""""""""
     Crypt & Decrypt
@@ -22,44 +48,38 @@ def main():
     
     ### CRYPT WITH FERNET
     
-    _input1 = binance_api_key
-    
-    _fernet_obj = FernetCryptographyClass(  tg_password, 
-                                            salt )
+    _fernet_obj     = PyCaClass( password2store, salt )
                                             
-    _binance_key_encrypt = _fernet_obj.crypt(_input1)
+    _key_encrypt    = _fernet_obj.crypt(key)
     
-    if _binance_key_encrypt[0] == 'OK':
+    if _key_encrypt[0] == 'OK':
         
         print('---------------------------------------------------------')
-        print( f"Encrypt response: {_binance_key_encrypt[0]}" )
-        print( _binance_key_encrypt[1] )
+        print( f"Encrypt response: {_key_encrypt[0]}" )
+        print( _key_encrypt[1] )
         print('---------------------------------------------------------')
         print('\n')
 
     else:
-        print(_binance_key_encrypt[1])
+        print(_key_encrypt[1])
         exit(1)
     
     ### DECRYPT WITH FERNET
     
-    _input1 = _binance_key_encrypt[1]
-    
-    _fernet_obj = FernetCryptographyClass(  tg_password, 
-                                            salt )
+    _fernet_obj     = PyCaClass( password2store, salt )
                                             
-    _binance_key_decrypt = _fernet_obj.decrypt(_input1)
+    _key_decrypt    = _fernet_obj.decrypt(_key_encrypt[1])
     
-    if _binance_key_decrypt[0] == 'OK':
+    if _key_decrypt[0] == 'OK':
         
         print('---------------------------------------------------------')
-        print( f"DeCrypt response: {_binance_key_decrypt[0]}" )        
-        print( _binance_key_decrypt[1] )
+        print( f"DeCrypt response: {_key_decrypt[0]}" )        
+        print( _key_decrypt[1] )
         print('---------------------------------------------------------')
         print('\n')
         
     else:
-        print(_binance_key_decrypt[1])
+        print(_key_decrypt[1])
         exit(1)
     
     """""""""""""""""""""""""""
@@ -69,7 +89,7 @@ def main():
     print('---------------------------------------------------------')
     
     print('Verify Crypt & DeCrypt')
-    if binance_api_key == _binance_key_decrypt[1] :
+    if key == _key_decrypt[1] :
         print('OK')
     else:
         print('NOK')
