@@ -1,5 +1,6 @@
 # https://cryptography.io/en/latest/fernet/#using-passwords-with-fernet
 # https://cryptography.io/en/latest/hazmat/primitives/key-derivation-functions/#cryptography.hazmat.primitives.kdf.scrypt.Scrypt
+# https://cryptography.io/en/latest/hazmat/primitives/cryptographic-hashes/
 
 from my_class import PyCaClass
 
@@ -118,24 +119,31 @@ def main(choose):
         
         print('---------------------------------------------------------')
 
-    # CheckSum File
+    # CheckSum File BLAKE2b
     elif choose == 3:
         
         _file_path  = './'
         _file1_name = 'Example1.pdf'
         _file2_name = 'Example1_copy.pdf'
         _file3_name = 'Example1_modified.pdf'        
-        
+
+        # Inputs
+        print(f"{chr(10)}------------")        
+        print(f"-- INPUTs --")
+        print(f"------------")        
+        _algo2checksum = input("Choose Algorithm to checksum (sha256 or blake2): ")            
+        print(f"{chr(10)}")
+
         _fernet_obj = PyCaClass( salt )
         
         # Calculate checksum1
-        _checksum1  = _fernet_obj.checksum_file(_file_path, _file1_name)
+        _checksum1  = _fernet_obj.checksum_file(_algo2checksum, _file_path, _file1_name)
         if _checksum1[0] == 'NOK':
             print(_checksum1[1])
             exit(1)
         
         # Calculate checksum2
-        _checksum2 = _fernet_obj.checksum_file(_file_path, _file2_name)
+        _checksum2 = _fernet_obj.checksum_file(_algo2checksum, _file_path, _file2_name)
         if _checksum2[0] == 'NOK':
             print(_checksum2[1])
             exit(1)

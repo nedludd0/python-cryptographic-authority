@@ -1,26 +1,25 @@
 # Cryptography
-import base64
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidKey, InvalidSignature
 
 # Others
+import base64
 import traceback
 import os.path
 
 # My
 import utility
 
-
 class PyCaClass:
     
     def __init__(self, _salt):
         
         # Defaults
-        self.algo           = 'Scrypt'
-        self.encoding       = 'UTF-8'
-        self.backend        = default_backend()
+        self.algo               = 'Scrypt'
+        self.encoding           = 'UTF-8'
+        self.backend            = default_backend()
         
         # Inputs
         self.salt_encoded   = _salt.encode(self.encoding) + _salt.encode(self.encoding) # I double the salt to make the encryption more robust
@@ -215,19 +214,28 @@ class PyCaClass:
         return(self.response_tuple)
 
     """""""""""""""""""""""""""""""""""""""
-    CHECKSUM file ( BLAKE2b(64) )
+    CHECKSUM file ( SHA256 or BLAKE2b )
     """""""""""""""""""""""""""""""""""""""
-    def checksum_file(self, _file_path, _file_name):
+    def checksum_file(self, _algo2checksum, _file_path, _file_name):
         
         # Prepare
         _file = f"{_file_path}{_file_name}"
-        _inputs = f"{self.inputs}|{_file}"
+        _inputs = f"{self.inputs}|{_algo2checksum}|{_file}"
         
+        # Choose Algorithm
+        if _algo2checksum.lower() == 'sha256':
+            _algo_checksum_file = hashes.SHA256()
+        elif _algo2checksum.lower() == 'blake2':
+            _algo_checksum_file = hashes.BLAKE2b(64)
+        else:
+            self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.checksum_file',_inputs,'Unknown algorithm')}")
+            return(self.response_tuple)
+            
         if os.path.exists(_file):
         
             with open(_file, "rb") as f:
                 try:
-                    _file_hash = hashes.Hash( hashes.BLAKE2b(64), backend=self.backend )
+                    _file_hash = hashes.Hash( _algo_checksum_file, backend=self.backend )
                     while chunk := f.read(8192): # Read the binary file to the end (8192)
                         _file_hash.update(chunk)
                 except Exception:
@@ -240,3 +248,4 @@ class PyCaClass:
             self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.checksum_file',_inputs,'File does not exist')}")
             
         return(self.response_tuple)
+
