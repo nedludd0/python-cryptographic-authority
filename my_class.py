@@ -22,12 +22,16 @@ class PyCaClass:
         self.backend            = default_backend()
         
         # Inputs
-        self.salt_encoded   = _salt.encode(self.encoding) + _salt.encode(self.encoding) # I double the salt to make the encryption more robust
+        self.salt           = f"{_salt}"
+        self.salt_encoded   = self.salt.encode(self.encoding) + self.salt.encode(self.encoding) # I double the salt to make the encryption more robust
 
         # Prepare
-        self.response_tuple = None
-        self.output_value   = None
-        self.inputs         = f"{_salt}|{self.algo}|{self.encoding}"
+        self.inputs                 = f"{_salt}|{self.algo}|{self.encoding}"        
+        self.response_tuple         = None
+        self.input_value_encoded    = None
+        self.input_value_crypted    = None
+        self.input_value_decrypted  = None
+        self.output_value_decoded   = None        
 
     """""""""""""""""""""""""""""""""""""""""""""
     Verify if _string is encoded
@@ -56,7 +60,7 @@ class PyCaClass:
                                     salt        = self.salt_encoded,
                                     iterations  = 100000,
                                     backend     = self.backend  )
-                self.response_tuple = ('OK',kdf)
+                self.response_tuple = ('OK', kdf)
                 
             except:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_kdf',self.inputs,traceback.format_exc(2))}")
@@ -73,7 +77,7 @@ class PyCaClass:
                                 r       = 8,
                                 p       = 1,
                                 backend = self.backend  )
-                self.response_tuple = ('OK',kdf)
+                self.response_tuple = ('OK', kdf)
                 
             except:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_kdf',self.inputs,traceback.format_exc(2))}")
@@ -87,7 +91,9 @@ class PyCaClass:
     def derive_and_b64encode_key(self, _password2hash):
         
         # Prepare
-        _password2hash_encoded  = _password2hash.encode(self.encoding)
+        _kdf_derive                 = None
+        _f_key_b64encode            = None
+        self.input_value_encoded    = _password2hash.encode(self.encoding)        
         
         # Create KDF
         _kdf = self.create_kdf()
@@ -95,9 +101,10 @@ class PyCaClass:
         # Derive (Hashing)
         if _kdf[0] == 'OK':
             try:
-                _f_derive   = _kdf[1].derive( _password2hash_encoded )
-                _f_key      = base64.urlsafe_b64encode(_f_derive)
-                self.response_tuple = ('OK',_f_key)
+                _kdf_derive                 = _kdf[1].derive( self.input_value_encoded )
+                _f_key_b64encode            =  base64.urlsafe_b64encode(_kdf_derive)
+                self.output_value_decoded   = str(_f_key_b64encode, self.encoding )
+                self.response_tuple         = ('OK', self.output_value_decoded)
             except:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.derive_and_b64encode_key',self.inputs,traceback.format_exc(2))}")
         else:
@@ -112,7 +119,7 @@ class PyCaClass:
     
         # Prepare
         _inputs                     = f"{self.inputs}|{_password_stored}|{_password2verify}"
-        _password2verify_encoded    = _password2verify.encode(self.encoding)
+        self.input_value_encoded    = _password2verify.encode(self.encoding)
         _password_stored_b64decode  = base64.urlsafe_b64decode(_password_stored) # b64decode
          
         # Create KDF
@@ -121,7 +128,7 @@ class PyCaClass:
         # Instance Fernet Obj
         if _kdf[0] == 'OK':
             try:
-                _kdf[1].verify(_password2verify_encoded, _password_stored_b64decode)
+                _kdf[1].verify(self.input_value_encoded, _password_stored_b64decode)
                 self.response_tuple = ('OK', True)
             except InvalidKey as e:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.verify_password',_inputs,e)}")
@@ -142,7 +149,7 @@ class PyCaClass:
         # Instance Fernet Obj
         if _f_key[0] == 'OK':
             try:
-                _fernet_obj = Fernet( _f_key[1] )
+                _fernet_obj         = Fernet( _f_key[1] )
                 self.response_tuple = ('OK',_fernet_obj)              
             except:
                 self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',self.inputs,traceback.format_exc(2))}")
@@ -167,14 +174,17 @@ class PyCaClass:
 
             if not ( self.is_encoded(_input_value1)  ):
                 try:
-                    self.output_value   = _fernet_obj[1].encrypt( _input_value1.encode(self.encoding) )
-                    self.response_tuple = ('OK',self.output_value)
+                    self.input_value_encoded    = _input_value1.encode(self.encoding)
+                    self.input_value_crypted    = _fernet_obj[1].encrypt(self.input_value_encoded)
+                    self.output_value_decoded   = str(self.input_value_crypted, self.encoding)
+                    self.response_tuple         = ('OK',self.output_value_decoded)
                 except:
                     self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.crypt',_inputs,traceback.format_exc(2))}")
             else:
                 try:
-                    self.output_value   = _fernet_obj[1].encrypt( _input_value1 )
-                    self.response_tuple = ('OK',self.output_value)
+                    self.input_value_crypted    = _fernet_obj[1].encrypt( _input_value1 )
+                    self.output_value_decoded   = str( self.input_value_crypted, self.encoding )
+                    self.response_tuple         = ('OK',self.output_value_decoded)
                 except:
                     self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.crypt',_inputs,traceback.format_exc(2))}")
         
@@ -189,7 +199,7 @@ class PyCaClass:
     def decrypt(self, _password4decrypt, _input_value1):
 
         # Prepare
-        _inputs = f"{self.inputs}|{_input_value1}"
+        _inputs = f"{self.inputs}|{_input_value1}"      
         
         # Create Obj
         _fernet_obj  = self.create_fernet_obj(_password4decrypt)
@@ -197,16 +207,25 @@ class PyCaClass:
         # Decrypt with Fernet Obj
         if _fernet_obj[0] == 'OK':
             
-            if self.is_encoded(_input_value1):
+            if not ( self.is_encoded(_input_value1) ):
                 try:
-                    self.output_value   = str( _fernet_obj[1].decrypt( _input_value1 ), self.encoding )
-                    self.response_tuple = ('OK',self.output_value)
+                    self.input_value_encoded    = _input_value1.encode(self.encoding)
+                    self.input_value_decrypted  = _fernet_obj[1].decrypt(self.input_value_encoded)
+                    self.output_value_decoded   = str( self.input_value_decrypted, self.encoding )
+                    self.response_tuple         = ('OK',self.output_value_decoded)
                 except InvalidToken:
-                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',_inputs,'InvalidToken')}")                                                             
+                    self.response_tuple         = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',_inputs,'Wrong password for decrypt')}")                                                             
                 except Exception:
-                    self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.decrypt',_inputs,traceback.format_exc(2))}")
+                    self.response_tuple         = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.decrypt',_inputs,traceback.format_exc(2))}")
             else:
-                self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.decrypt',_inputs,'Input value not encoded')}")
+                try:
+                    self.input_value_decrypted  = _fernet_obj[1].decrypt(_input_value1)
+                    self.output_value_decoded   = str( self.input_value_decrypted, self.encoding )
+                    self.response_tuple         = ('OK',self.output_value_decoded)
+                except InvalidToken:
+                    self.response_tuple         = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.create_fernet_obj',_inputs,'Wrong password for decrypt')}")                                                             
+                except Exception:
+                    self.response_tuple         = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.decrypt',_inputs,traceback.format_exc(2))}")
 
         else:
             self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.decrypt',_inputs,_fernet_obj[1])}")
@@ -219,8 +238,10 @@ class PyCaClass:
     def checksum_file(self, _algo2checksum, _file_path, _file_name):
         
         # Prepare
-        _file = f"{_file_path}{_file_name}"
-        _inputs = f"{self.inputs}|{_algo2checksum}|{_file}"
+        _file               = f"{_file_path}{_file_name}"
+        _inputs             = f"{self.inputs}|{_algo2checksum}|{_file}"
+        _checksum           = None
+        _checksum_b64encode = None
         
         # Choose Algorithm
         if _algo2checksum.lower() == 'sha256':
@@ -241,8 +262,10 @@ class PyCaClass:
                 except Exception:
                     self.response_tuple = ('NOK',  f"{ utility.my_log('Exception','PyCaClass.checksum_file',_inputs,traceback.format_exc(2))}")
 
-            self.output_value   = base64.urlsafe_b64encode( _file_hash.finalize() )
-            self.response_tuple = ('OK',self.output_value)
+            _checksum                   = _file_hash.finalize()
+            _checksum_b64encode         = base64.urlsafe_b64encode(_checksum )
+            self.output_value_decoded   = str(_checksum_b64encode, self.encoding)
+            self.response_tuple         = ('OK',self.output_value_decoded)
             
         else:
             self.response_tuple = ('NOK',  f"{ utility.my_log('Error','PyCaClass.checksum_file',_inputs,'File does not exist')}")

@@ -55,7 +55,7 @@ def main(choose):
             print(_password_hashed[1])
             exit(1)
 
-    # Crypt&Decrypt with password
+    # Crypt & Decrypt with input password
     elif choose == 2:
         
         """""""""""""""""""""""""""
@@ -119,7 +119,7 @@ def main(choose):
         
         print('---------------------------------------------------------')
 
-    # CheckSum File BLAKE2b
+    # CheckSum File SHA256 or BLAKE2
     elif choose == 3:
         
         _file_path  = './'
@@ -166,6 +166,6 @@ def main(choose):
             
 if __name__ == "__main__":
 
-    choose = input(f"{chr(10)}CHOOSE WHAT TO DO (Verify Password 1, Crypt&Decrypt with password 2, CheckSum File 3): ") 
+    choose = input(f"{chr(10)}CHOOSE WHAT TO DO (Verify Password 1, Crypt&Decrypt with input password 2, CheckSum File 3): ") 
     
     main(int(choose))
